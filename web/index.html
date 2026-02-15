@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promo Scanner — Track Boosted Odds</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --text: #f0f0f5;
+            --text-secondary: #9090a0;
+            --accent: #22c55e;
+            --accent-warning: #f59e0b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+        }
+        
+        .upload-area {
+            background: var(--surface);
+            border: 2px dashed var(--text-secondary);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--accent);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: rgba(34, 197, 94, 0.1);
+        }
+        
+        .promo-list {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .promo-card {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .promo-info h3 {
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .promo-info p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .promo-odds {
+            text-align: right;
+        }
+        
+        .odds-boost {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .odds-original {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-decoration: line-through;
+        }
+        
+        .manual-form {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--text-secondary);
+            border-radius: 6px;
+            color: var(--text);
+        }
+        
+        button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Promo Scanner</h1>
+        <p>Track boosted odds from Winamax, Unibet, Betclic</p>
+    </div>
+    
+    <div class="upload-area" id="dropZone">
+        <p>📸 Drop screenshot here or click to upload</p>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+    
+    <div class="manual-form">
+        <h3>Add Promotion Manually</h3>
+        <div class="form-group">
+            <label>Bookmaker</label>
+            <select id="bookmaker">
+                <option>Winamax</option>
+                <option>Unibet FR</option>
+                <option>Betclic</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Event</label>
+            <input type="text" id="event" placeholder="e.g., Lyon - Nice">
+        </div>
+        <div class="form-group">
+            <label>Selection</label>
+            <input type="text" id="selection" placeholder="e.g., Lyon gagne">
+        </div>
+        <div class="form-group">
+            <label>Original Odds</label>
+            <input type="number" id="originalOdds" step="0.01" placeholder="2.50">
+        </div>
+        <div class="form-group">
+            <label>Boosted Odds</label>
+            <input type="number" id="boostedOdds" step="0.01" placeholder="3.00">
+        </div>
+        <button onclick="addPromotion()">Add Promotion</button>
+    </div>
+    
+    <div class="promo-list" id="promoList">
+        <!-- Promotions loaded here -->
+    </div>
+    
+    <script>
+        // Load promotions on page load
+        loadPromotions();
+        
+        // File upload handling
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) uploadScreenshot(files[0]);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) uploadScreenshot(e.target.files[0]);
+        });
+        
+        async function uploadScreenshot(file) {
+            const formData = new FormData();
+            formData.append('screenshot', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                alert(`Extracted ${data.extracted} promotions`);
+                loadPromotions();
+            } catch (error) {
+                alert('Upload failed: ' + error.message);
+            }
+        }
+        
+        async function addPromotion() {
+            const promo = {
+                bookmaker: document.getElementById('bookmaker').value,
+                event: document.getElementById('event').value,
+                selection: document.getElementById('selection').value,
+                originalOdds: parseFloat(document.getElementById('originalOdds').value),
+                boostedOdds: parseFloat(document.getElementById('boostedOdds').value)
+            };
+            
+            try {
+                await fetch('/api/promotions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(promo)
+                });
+                loadPromotions();
+                // Clear form
+                document.getElementById('event').value = '';
+                document.getElementById('selection').value = '';
+                document.getElementById('originalOdds').value = '';
+                document.getElementById('boostedOdds').value = '';
+            } catch (error) {
+                alert('Failed to add: ' + error.message);
+            }
+        }
+        
+        async function loadPromotions() {
+            try {
+                const response = await fetch('/api/promotions');
+                const promos = await response.json();
+                
+                const list = document.getElementById('promoList');
+                list.innerHTML = promos.map(p => `
+                    <div class="promo-card">
+                        <div class="promo-info">
+                            <h3>${p.event}</h3>
+                            <p>${p.bookmaker} — ${p.selection}</p>
+                        </div>
+                        <div class="promo-odds">
+                            <div class="odds-boost">+${p.boostPercent.toFixed(1)}%</div>
+                            <div class="odds-original">${p.originalOdds} → ${p.boostedOdds}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load:', error);
+            }
+        }
+    </script>
+</body>
+</html>
