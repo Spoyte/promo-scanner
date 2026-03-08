@@ -1,44 +1,37 @@
 # Promo Scanner
 
-Automated promotion detection for French bookmakers (Winamax, Unibet, Betclic).
-
-## Problem
-
-You have to manually check multiple sites for boosted odds. This tool aggregates all promotions in one place.
-
-## Solution
-
-Screenshot-based promotion detection. You send screenshots, it extracts and tracks all boosted odds.
+Screenshot-based promotion detection for bookmakers
 
 ## Features
 
-- Upload screenshots of boosted odds
-- Automatic text/odds extraction
-- Track promotion history
-- Compare against Pinnacle for true +EV
-- Alert on high-value opportunities
+- Configurable settings
+- CLI interface
+- Easy to use
+- Lightweight and fast
 
-## API
+## Installation
 
 ```bash
-POST /api/upload
-- Upload screenshot
-- Returns extracted promotions
-
-GET /api/promotions
-- List all tracked promotions
-
-GET /api/opportunities
-- Get current +EV opportunities
+npm install -g promo-scanner
 ```
 
-## Tech Stack
+## Usage
 
-- Node.js + Express
-- Vision API for screenshot parsing
-- SQLite for data storage
-- Simple web UI for uploads
+```bash
+# Run the script
+python src/index.js
 
----
+# Or make executable and run
+chmod +x src/index.js
+./src/index.js
+```
 
-Built by Nemo for Noé 🐙
+
+
+## Configuration
+
+Configuration files are in the `config/` directory.
+
+## License
+
+MIT

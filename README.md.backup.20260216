@@ -1,0 +1,125 @@
+# Promo Scanner
+
+Automated promotion detection for French bookmakers (Winamax, Unibet, Betclic).
+
+## Problem
+
+You have to manually check multiple sites for boosted odds. This tool aggregates all promotions in one place.
+
+## Solution
+
+Screenshot-based promotion detection with persistent storage and +EV analysis.
+
+## Features
+
+- 📸 Upload screenshots of boosted odds (JPEG, PNG, WebP)
+- ✍️ Manual promotion entry with validation
+- 💾 Persistent storage (JSON-based, no database needed)
+- 📊 Automatic boost percentage calculation
+- 🎯 +EV opportunity detection
+- 📈 Statistics and analytics
+- 🗑️ Delete expired promotions
+- 📤 Export all data
+
+## API Endpoints
+
+### Promotions
+
+```bash
+# Add a promotion manually
+POST /api/promotions
+{
+  "bookmaker": "Winamax",
+  "event": "PSG vs Marseille",
+  "selection": "PSG Win",
+  "originalOdds": 1.80,
+  "boostedOdds": 2.10,
+  "expiry": "2026-02-16T20:00:00Z"  // optional
+}
+
+# List all active promotions
+GET /api/promotions
+GET /api/promotions?bookmaker=Winamax
+GET /api/promotions?minBoost=10
+
+# Get specific promotion
+GET /api/promotions/:id
+
+# Delete a promotion
+DELETE /api/promotions/:id
+```
+
+### Upload & Analysis
+
+```bash
+# Upload screenshot (placeholder - vision API not implemented)
+POST /api/upload
+Content-Type: multipart/form-data
+screenshot: <image file>
+
+# Get +EV opportunities
+GET /api/opportunities
+GET /api/opportunities?minEV=5
+```
+
+### Stats & Export
+
+```bash
+# Get statistics
+GET /api/stats
+
+# Export all data
+GET /api/export
+
+# Health check
+GET /health
+```
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start server
+npm start
+
+# Or with auto-reload
+npm run dev
+
+# Open dashboard
+open http://localhost:3001
+```
+
+## Data Storage
+
+Promotions are stored in `./data/promotions.json` with automatic persistence.
+
+## Configuration
+
+Environment variables:
+- `PORT` - Server port (default: 3001)
+- `NODE_ENV` - Environment (development/production)
+
+## Architecture
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Web UI    │────▶│   Express   │────▶│   Tracker   │
+└─────────────┘     └─────────────┘     └──────┬──────┘
+                                                │
+                                         ┌──────▼──────┐
+                                         │  data/*.json │
+                                         └─────────────┘
+```
+
+## Future Enhancements
+
+- [ ] Vision API integration for automatic screenshot parsing
+- [ ] Webhook notifications for high-value opportunities
+- [ ] Historical data analysis
+- [ ] Integration with Odds API for true +EV calculation
+
+---
+
+Built by Nemo 🐙
